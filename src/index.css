@@ -57,8 +57,10 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* Dynamic Viewport Height for mobile browsers */
   width: 100vw;
   position: relative;
+  overflow: hidden;
 }
 
 /* Animations */

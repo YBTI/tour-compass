@@ -151,7 +151,7 @@ export default function MapPage() {
       <button 
         className="btn"
         style={{
-          position: 'absolute', bottom: 30, right: 20, zIndex: 1000,
+          position: 'absolute', bottom: 'calc(40px + env(safe-area-inset-bottom))', right: 20, zIndex: 1000,
           backgroundColor: 'var(--danger)', color: 'white',
           width: '60px', height: '60px', borderRadius: '50%',
           boxShadow: '0 4px 20px rgba(239, 68, 68, 0.6)',
@@ -166,7 +166,7 @@ export default function MapPage() {
       <button 
         className="glass-panel"
         style={{
-          position: 'absolute', bottom: 30, left: 20, zIndex: 1000,
+          position: 'absolute', bottom: 'calc(40px + env(safe-area-inset-bottom))', left: 20, zIndex: 1000,
           width: '50px', height: '50px', borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           border: '1px solid var(--surface-border)', cursor: 'pointer', color: 'var(--primary)',
