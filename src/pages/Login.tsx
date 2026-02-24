@@ -175,51 +175,65 @@ export default function Login() {
             />
           </div>
 
-          <div className="divider"> または </div>
+          <div className="divider"><span> または </span></div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              type="button" 
-              className={`btn ${mode === 'join' ? 'btn-primary' : 'btn-secondary'}`} 
-              style={{ flex: 1 }}
-              onClick={() => setMode('join')}
-            >
-              参加する
-            </button>
-            <button 
-              type="button" 
-              className={`btn ${mode === 'create' ? 'btn-primary' : 'btn-secondary'}`} 
-              style={{ flex: 1 }}
-              onClick={() => setMode('create')}
-            >
-              作成する
-            </button>
+          <div className="mode-selector-wrapper">
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                type="button" 
+                className={`btn ${mode === 'join' ? 'btn-primary' : 'btn-secondary'}`} 
+                style={{ flex: 1 }}
+                onClick={() => setMode('join')}
+              >
+                <span>参加する</span>
+              </button>
+              <button 
+                type="button" 
+                className={`btn ${mode === 'create' ? 'btn-primary' : 'btn-secondary'}`} 
+                style={{ flex: 1 }}
+                onClick={() => setMode('create')}
+              >
+                <span>作成する</span>
+              </button>
+            </div>
           </div>
 
-          {mode === 'join' && (
-            <div className="form-group animate-fade-in" style={{ marginTop: '8px' }}>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="グループIDを入力" 
-                value={groupId}
-                onChange={(e) => setGroupId(e.target.value)}
-                maxLength={6}
-                style={{ textTransform: 'uppercase' }}
-                required
-              />
-            </div>
-          )}
-
-          <button type="submit" className="btn btn-primary" style={{ marginTop: '16px', width: '100%' }} disabled={isLoading}>
-            {isLoading ? (
-              <><Loader2 size={20} className="animate-spin" /> 処理中...</>
-            ) : mode === 'join' ? (
-              <><Users size={20} /> グループに参加</>
+          <div className="dynamic-content-wrapper" style={{ minHeight: '60px' }}>
+            {mode === 'join' ? (
+              <div key="join-field" className="form-group animate-fade-in" style={{ marginTop: '8px' }}>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  placeholder="グループIDを入力" 
+                  value={groupId}
+                  onChange={(e) => setGroupId(e.target.value)}
+                  maxLength={6}
+                  style={{ textTransform: 'uppercase' }}
+                  required
+                />
+              </div>
             ) : (
-              <><MapPin size={20} /> 新しいグループを作成</>
+              <div key="create-field" style={{ height: '0px' }} />
             )}
-          </button>
+          </div>
+
+          <div className="submit-wrapper">
+            <button type="submit" className="btn btn-primary" style={{ marginTop: '16px', width: '100%' }} disabled={isLoading}>
+              {isLoading ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Loader2 size={20} className="animate-spin" /> <span>処理中...</span>
+                </span>
+              ) : mode === 'join' ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Users size={20} /> <span>グループに参加</span>
+                </span>
+              ) : (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MapPin size={20} /> <span>新しいグループを作成</span>
+                </span>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
