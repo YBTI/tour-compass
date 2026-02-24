@@ -38,7 +38,13 @@ const createUserIcon = (user: User, isLeader: boolean) => {
 export default function LiveMap() {
   const { currentUser, groupMembers, currentGroup } = useAppContext();
   
-  if (!currentUser) return null;
+  if (!currentUser || typeof currentUser.currentLat !== 'number' || isNaN(currentUser.currentLat)) {
+    return (
+      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eee' }}>
+        <p>位置情報を取得できません（再開をお待ちください...）</p>
+      </div>
+    );
+  }
 
   const center: [number, number] = [currentUser.currentLat, currentUser.currentLng];
 
@@ -62,13 +68,15 @@ export default function LiveMap() {
           const isMe = member.id === currentUser.id;
           
           let distStr = '';
-          if (!isMe && currentUser) {
+          if (!isMe && currentUser && typeof member.currentLat === 'number') {
             const dist = calculateDistance(
               currentUser.currentLat, currentUser.currentLng,
               member.currentLat, member.currentLng
             );
             distStr = `<br/>距離: ${Math.round(dist)}m`;
           }
+
+          if (typeof member.currentLat !== 'number' || isNaN(member.currentLat)) return null;
 
           return (
             <Marker 

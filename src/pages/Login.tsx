@@ -31,92 +31,111 @@ export default function Login() {
     
     setIsLoading(true);
     
-    // Create current user
-    const newUser: User = {
-      id: generateId(),
-      groupId: '', // 後でセットされます
-      name: name.trim(),
-      iconUrl: avatar,
-      currentLat: 35.681236, // default Tokyo Start
-      currentLng: 139.767125,
-      lastUpdated: new Date().toISOString()
-    };
+    try {
+      // 1. GPS情報を取得（タイムアウト付）
+      let lat = 35.681236; // デフォルト：東京
+      let lng = 139.767125;
+      
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false, // ログイン時は早さを優先
+            timeout: 5000,
+            maximumAge: 60000
+          });
+        });
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+      } catch (gpsErr) {
+        console.warn('GPS取得失敗。デフォルト位置を使用します。', gpsErr);
+        // GPSが取れなくても継続（エラーにはしない）
+      }
 
-    let targetGroup: Group;
-
-    if (mode === 'create') {
-      const newGroupId = generateId();
-      targetGroup = {
-        id: newGroupId,
-        leaderId: newUser.id,
-        alertDistance: 100 // default 100m
+      // Create current user
+      const newUser: User = {
+        id: generateId(),
+        groupId: '', // 後でセット
+        name: name.trim(),
+        iconUrl: avatar,
+        currentLat: lat,
+        currentLng: lng,
+        lastUpdated: new Date().toISOString()
       };
 
-      // Create Group in Supabase
-      const { error: groupError } = await supabase
-        .from('groups')
-        .insert({
-          id: targetGroup.id,
-          leader_id: targetGroup.leaderId,
-          alert_distance: targetGroup.alertDistance
+      let targetGroup: Group;
+
+      if (mode === 'create') {
+        const newGroupId = generateId();
+        targetGroup = {
+          id: newGroupId,
+          leaderId: newUser.id,
+          alertDistance: 100
+        };
+
+        const { error: groupError } = await supabase
+          .from('groups')
+          .insert({
+            id: targetGroup.id,
+            leader_id: targetGroup.leaderId,
+            alert_distance: targetGroup.alertDistance
+          });
+
+        if (groupError) throw groupError;
+        newUser.groupId = targetGroup.id;
+      } else {
+        if (!groupId.trim()) {
+          setIsLoading(false);
+          return alert('グループIDを入力してください');
+        }
+        const searchId = groupId.trim().toUpperCase();
+        const { data: existingGroup, error: findError } = await supabase
+          .from('groups')
+          .select('*')
+          .eq('id', searchId)
+          .single();
+          
+        if (findError || !existingGroup) {
+          setIsLoading(false);
+          return alert('指定されたグループが見つかりません');
+        }
+
+        targetGroup = {
+          id: existingGroup.id,
+          leaderId: existingGroup.leader_id,
+          alertDistance: existingGroup.alert_distance || 100
+        };
+        newUser.groupId = targetGroup.id;
+      }
+
+      // Upsert User Location
+      const { error: userError } = await supabase
+        .from('user_locations')
+        .upsert({
+          id: newUser.id,
+          group_id: newUser.groupId,
+          name: newUser.name,
+          icon_url: newUser.iconUrl,
+          current_lat: newUser.currentLat,
+          current_lng: newUser.currentLng,
+          last_updated: newUser.lastUpdated
         });
 
-      if (groupError) {
-        setIsLoading(false);
-        return alert('グループの作成に失敗しました: ' + groupError.message);
-      }
-      newUser.groupId = targetGroup.id;
-    } else {
-      if (!groupId.trim()) {
-        setIsLoading(false);
-        return alert('グループIDを入力してください');
-      }
-      
-      const searchId = groupId.trim().toUpperCase();
-      
-      // Check if group exists in Supabase
-      const { data: existingGroup, error: findError } = await supabase
-        .from('groups')
-        .select('*')
-        .eq('id', searchId)
-        .single();
-        
-      if (findError || !existingGroup) {
-        setIsLoading(false);
-        return alert('指定されたグループが見つかりません');
-      }
+      if (userError) throw userError;
 
-      targetGroup = {
-        id: existingGroup.id,
-        leaderId: existingGroup.leader_id,
-        alertDistance: existingGroup.alert_distance || 100
-      };
+      // 重要：Stateの直接セット
+      setCurrentUser(newUser);
+      setCurrentGroup(targetGroup);
       
-      newUser.groupId = targetGroup.id;
-    }
-
-    // Upsert User Location
-    const { error: userError } = await supabase
-      .from('user_locations')
-      .upsert({
-        id: newUser.id,
-        group_id: newUser.groupId,
-        name: newUser.name,
-        icon_url: newUser.iconUrl,
-        current_lat: newUser.currentLat,
-        current_lng: newUser.currentLng,
-        last_updated: newUser.lastUpdated
-      });
-
-    if (userError) {
+      // 成功ログ
+      console.log('Login Success:', newUser.id);
+      
+      // 移動
+      navigate('/map');
+    } catch (err: any) {
+      console.error('Login Error:', err);
+      alert('エラーが発生しました: ' + (err.message || JSON.stringify(err)));
       setIsLoading(false);
-      return alert('ユーザー情報の登録に失敗しました: ' + userError.message);
     }
-
-    setCurrentUser(newUser);
-    setCurrentGroup(targetGroup);
-    
-    navigate('/map');
   };
 
   return (

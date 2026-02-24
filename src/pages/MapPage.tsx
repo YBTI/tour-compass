@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppContext } from '../store/AppContext';
 import LiveMap from '../components/LiveMap';
 import { calculateDistance } from '../utils/mockData';
-import { AlertTriangle, ShieldCheck, PhoneCall, MapPin, LogOut } from 'lucide-react';
+import { AlertTriangle, ShieldCheck, PhoneCall, MapPin, LogOut, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function MapPage() {
@@ -27,7 +27,7 @@ export default function MapPage() {
         updateMemberLocation(currentUser.id, latitude, longitude);
       },
       (err) => console.warn('Geolocation error:', err),
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 } // タイムアウトを15秒に延長
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, [currentUser?.id]);
@@ -53,7 +53,17 @@ export default function MapPage() {
     }
   }, [currentUser?.currentLat, currentUser?.currentLng, groupMembers]);
 
-  if (!currentUser || !currentGroup) return null;
+  if (!currentUser || !currentGroup) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center', marginTop: '50px' }}>
+        <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 20px', display: 'block' }} />
+        <p>読み込み中、またはセッションが切れました。</p>
+        <button onClick={() => navigate('/')} className="btn btn-secondary" style={{ marginTop: '20px' }}>
+          トップへ戻る
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="map-page-container">
