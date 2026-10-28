@@ -147,7 +147,7 @@ export default function Login() {
       }}>
         <div className="login-header">
           <ShieldCheck size={56} color="var(--primary)" style={{ margin: '0 auto 16px', filter: 'drop-shadow(0 4px 6px rgba(79, 70, 229, 0.2))' }} />
-          <h1>はぐれナイト</h1>
+          <h1>声かけナイト</h1>
           <p>あなたを迷子から守る、心強い同行者。</p>
         </div>
 
