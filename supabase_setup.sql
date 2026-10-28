@@ -1,4 +1,4 @@
--- はぐれナイト (Hagure Knight) Supabase データベース初期化 SQL
+-- 声かけナイト (Koekake Knight) Supabase データベース初期化 SQL
 -- =================================================================
 
 -- 1. groups (グループ情報) テーブルの作成
@@ -29,3 +29,16 @@ ALTER TABLE public.user_locations REPLICA IDENTITY FULL;
 -- (今回は簡単のため RLS をオフにしてパブリックアクセス可能にします)
 ALTER TABLE public.groups DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_locations DISABLE ROW LEVEL SECURITY;
+
+-- 5. push_subscriptions (Push通知の購読情報) テーブルの作成
+--    アプリを閉じているメンバーにも応援通知を届けるために使用
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+  endpoint TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES public.user_locations(id) ON DELETE CASCADE,
+  group_id TEXT NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+CREATE INDEX IF NOT EXISTS push_subscriptions_group_user_idx ON public.push_subscriptions (group_id, user_id);
+ALTER TABLE public.push_subscriptions DISABLE ROW LEVEL SECURITY;

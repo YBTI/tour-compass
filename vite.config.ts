@@ -9,9 +9,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
+      // Push通知の受信処理 (public/push-sw.js) を Service Worker に取り込む
+      workbox: {
+        importScripts: ['push-sw.js']
+      },
       manifest: {
-        name: 'はぐれナイト',
-        short_name: 'はぐれナイト',
+        name: '声かけナイト',
+        short_name: '声かけナイト',
         description: 'あなたを迷子から守る、心強い同行者',
         theme_color: '#4F46E5',
         background_color: '#F8FAFC',
